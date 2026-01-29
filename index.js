@@ -16,7 +16,7 @@ const client = new Client({
   intents: [GatewayIntentBits.Guilds],
 });
 
-/* ✅ LIST KEY DISINI */
+/* ✅ LIST KEY */
 let keys = [
   "FREE-K9P2M",
   "FREE-ZX81L",
@@ -29,30 +29,50 @@ let keys = [
   "FREE-LA72P",
 ];
 
-/* ✅ SIMPAN KEY PER USER (ANTI SPAM DM) */
-const userKey = new Map(); // userId -> key
+/* ✅ BACKUP KEY (AUTO RESET BIAR GAK HABIS) */
+const backupKeys = [...keys];
+
+/* ✅ SIMPAN KEY PER USER */
+const userKey = new Map();
 
 client.once(Events.ClientReady, async () => {
   console.log("✅ Bot aktif sebagai " + client.user.tag);
 
   const channel = await client.channels.fetch(process.env.CHANNEL_ID);
 
+  /* ✅ ANTI DOBEL: Hapus pesan bot lama */
+  try {
+    const msgs = await channel.messages.fetch({ limit: 20 });
+    msgs.forEach((m) => {
+      if (m.author.id === client.user.id) m.delete().catch(() => {});
+    });
+  } catch (e) {}
+
+  /* ✅ Kirim tombol FREE + VIP */
   await channel.send({
     content:
-      "**Tekan tombol hijau tersebut lalu masukan username roblox kalian, perhatikan penulisan besar kecilnya**",
+      "**Tekan tombol hijau untuk claim Script Free.\nKalau mau VIP lebih gacor, klik tombol Order VIP.**",
     components: [
       new ActionRowBuilder().addComponents(
+        // ✅ FREE CLAIM
         new ButtonBuilder()
           .setCustomId("claim")
-          .setLabel("Scripts Free (Tekan Ini)")
-          .setStyle(ButtonStyle.Success)
+          .setLabel("✅ Scripts Free (Tekan Ini)")
+          .setStyle(ButtonStyle.Success),
+
+        // ✅ ORDER VIP LINK
+        new ButtonBuilder()
+          .setLabel("💰 Order VIP")
+          .setStyle(ButtonStyle.Link)
+          .setURL("https://discord.gg/LINKVIPLU") // 🔥 GANTI LINK VIP LU
       ),
     ],
   });
 });
 
+/* ✅ INTERACTION */
 client.on(Events.InteractionCreate, async (interaction) => {
-  // Klik tombol
+  /* ✅ Klik tombol FREE */
   if (interaction.isButton() && interaction.customId === "claim") {
     const modal = new ModalBuilder()
       .setCustomId("modal_whitelist")
@@ -68,53 +88,47 @@ client.on(Events.InteractionCreate, async (interaction) => {
     return interaction.showModal(modal);
   }
 
-  // Submit modal
+  /* ✅ Submit Modal */
   if (interaction.isModalSubmit() && interaction.customId === "modal_whitelist") {
     const username = interaction.fields.getTextInputValue("username").trim();
 
-    // Kalau sudah pernah claim → jangan DM lagi
+    /* ✅ Kalau sudah pernah claim */
     if (userKey.has(interaction.user.id)) {
       const oldKey = userKey.get(interaction.user.id);
       return interaction.reply({
         ephemeral: true,
-        content: `✅ Kamu sudah claim sebelumnya.\nKey kamu masih sama: **${oldKey}**\nCek DM lama ya.`,
+        content: `✅ Kamu sudah claim sebelumnya.\nKey kamu: **${oldKey}**\nCek DM lama ya.`,
       });
     }
 
-    // Claim pertama kali → ambil 1 key
+    /* ✅ Kalau key habis → reset ulang */
     if (keys.length === 0) {
-      return interaction.reply({
-        ephemeral: true,
-        content: "❌ Key sudah habis, hubungi admin.",
-      });
+      keys = [...backupKeys];
     }
 
+    /* ✅ Ambil key */
     const key = keys.shift();
     userKey.set(interaction.user.id, key);
 
-    const link = process.env.SCRIPT_URL; // ✅ link raw doang, anti double
+    const link = process.env.SCRIPT_URL;
 
-    // DM: Promo atas, Key + Link bawah
+    /* ✅ DM Text */
     const dmText =
-      `💬 Ini free pake aja, terima aja kalau ada kekurangan.\n` +
-      `Kalau pengen gacor sung gaya, beli VIP murah nah ini harga nya:\n\n` +
-
-      `📌 Harga Script:\n` +
+      `💬 Ini free, pakai aja.\n\n` +
+      `Kalau mau versi VIP (lebih gacor) bisa order ya:\n\n` +
+      `📌 Harga VIP Script:\n` +
       `💠 1 Hari — Rp 5.000\n` +
       `💠 7 Hari — Rp 20.000\n` +
       `💠 14 Hari — Rp 35.000\n` +
       `💠 30 Hari — Rp 60.000\n\n` +
-
-      `✅ Langsung order VIP:\n` +
-      `🎫 Create tiket\n` +
-      `📩 Atau bisa PM owner\n` +
-      `👑 Admin Dn\n\n` +
-
+      `💰 Order VIP:\n` +
+      `https://discord.com/channels/1450477024257769597/1466188664215437329` + // 🔥 GANTI LINK VIP
       `---------------------------------\n\n` +
       `✅ Username Roblox: **${username}**\n` +
       `🔑 Key: **${key}**\n` +
-      `🔗 Link: ${link}`;
+      `🔗 Script Link: ${link}`;
 
+    /* ✅ Kirim DM */
     try {
       await interaction.user.send({ content: dmText });
       return interaction.reply({
@@ -132,4 +146,5 @@ client.on(Events.InteractionCreate, async (interaction) => {
   }
 });
 
-client.login(process.env.TOKEN);
+/* ✅ LOGIN */
+client.login(process.env.DISCORD_TOKEN);
