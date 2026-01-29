@@ -29,10 +29,7 @@ let keys = [
   "FREE-LA72P",
 ];
 
-/* ✅ BACKUP KEY (AUTO RESET BIAR GAK HABIS) */
 const backupKeys = [...keys];
-
-/* ✅ SIMPAN KEY PER USER (ANTI CLAIM ULANG) */
 const userKey = new Map();
 
 client.once(Events.ClientReady, async () => {
@@ -40,7 +37,7 @@ client.once(Events.ClientReady, async () => {
 
   const channel = await client.channels.fetch(process.env.CHANNEL_ID);
 
-  /* ✅ ANTI DOBEL PESAN SAAT RESTART */
+  /* ✅ HAPUS PESAN BOT LAMA */
   try {
     const msgs = await channel.messages.fetch({ limit: 20 });
     msgs.forEach((m) => {
@@ -48,31 +45,30 @@ client.once(Events.ClientReady, async () => {
     });
   } catch (e) {}
 
-  /* ✅ BUTTON FREE + VIP */
+  /* ✅ KIRIM TOMBOL FREE + VIP */
   await channel.send({
     content:
       "**Tekan tombol hijau untuk claim Script Free.\nKalau mau VIP lebih gacor, klik tombol Order VIP.**",
     components: [
       new ActionRowBuilder().addComponents(
-        // ✅ FREE CLAIM
+        // ✅ CLAIM FREE
         new ButtonBuilder()
           .setCustomId("claim")
           .setLabel("✅ Scripts Free (Tekan Ini)")
           .setStyle(ButtonStyle.Success),
 
-        // ✅ ORDER VIP (GANTI LINK CHANNEL ORDER LU)
+        // ✅ ORDER VIP (GANTI LINK INI!)
         new ButtonBuilder()
           .setLabel("💰 Order VIP")
           .setStyle(ButtonStyle.Link)
-          .setURL("PASTE_LINK_CHANNEL_ORDER_DISINI")
+         .setURL("https://discord.com/channels/1450477024257769597/1466188664215437329")
       ),
     ],
   });
 });
 
-/* ✅ INTERACTION */
 client.on(Events.InteractionCreate, async (interaction) => {
-  /* ✅ Klik tombol FREE */
+  /* ✅ BUTTON CLAIM */
   if (interaction.isButton() && interaction.customId === "claim") {
     const modal = new ModalBuilder()
       .setCustomId("modal_whitelist")
@@ -88,61 +84,48 @@ client.on(Events.InteractionCreate, async (interaction) => {
     return interaction.showModal(modal);
   }
 
-  /* ✅ Submit Modal */
+  /* ✅ SUBMIT MODAL */
   if (interaction.isModalSubmit() && interaction.customId === "modal_whitelist") {
     const username = interaction.fields.getTextInputValue("username").trim();
 
-    /* ✅ Kalau sudah pernah claim */
+    /* ✅ SUDAH CLAIM */
     if (userKey.has(interaction.user.id)) {
-      const oldKey = userKey.get(interaction.user.id);
       return interaction.reply({
         ephemeral: true,
-        content: `✅ Kamu sudah claim sebelumnya.\nKey kamu: **${oldKey}**\nCek DM lama ya.`,
+        content: `✅ Kamu sudah claim sebelumnya.\nKey kamu: **${userKey.get(
+          interaction.user.id
+        )}**`,
       });
     }
 
-    /* ✅ Kalau key habis → reset ulang */
-    if (keys.length === 0) {
-      keys = [...backupKeys];
-    }
+    /* ✅ AUTO RESET KEY */
+    if (keys.length === 0) keys = [...backupKeys];
 
-    /* ✅ Ambil key */
     const key = keys.shift();
     userKey.set(interaction.user.id, key);
 
     const link = process.env.SCRIPT_URL;
 
-    /* ✅ DM Text */
     const dmText =
-      `💬 Ini free, pakai aja.\n\n` +
-      `Kalau mau versi VIP (lebih gacor) bisa order ya:\n\n` +
-      `📌 Harga VIP Script:\n` +
-      `💠 1 Hari — Rp 5.000\n` +
-      `💠 7 Hari — Rp 20.000\n` +
-      `💠 14 Hari — Rp 35.000\n` +
-      `💠 30 Hari — Rp 60.000\n\n` +
-      `---------------------------------\n\n` +
       `✅ Username Roblox: **${username}**\n` +
-      `🔑 Key: **${key}**\n` +
-      `🔗 Script Link: ${link}`;
+      `🔑 Key: **${key}**\n\n` +
+      `🔗 Script Link: ${link}\n\n` +
+      `💰 VIP Harga:\n` +
+      `1 Hari Rp5.000\n7 Hari Rp20.000\n14 Hari Rp35.000\n30 Hari Rp60.000`;
 
-    /* ✅ Kirim DM */
     try {
       await interaction.user.send({ content: dmText });
       return interaction.reply({
         ephemeral: true,
-        content: "✅ Sudah terkirim ke DM kamu. Cek inbox!",
+        content: "✅ Sudah terkirim ke DM kamu!",
       });
     } catch (err) {
       return interaction.reply({
         ephemeral: true,
-        content:
-          `❌ DM kamu tertutup.\nIni key kamu: **${key}**\n` +
-          `Nyalakan DM: Privacy Settings → Allow Direct Messages.`,
+        content: `❌ DM kamu tertutup.\nKey kamu: **${key}**`,
       });
     }
   }
 });
 
-/* ✅ LOGIN BOT */
 client.login(process.env.DISCORD_TOKEN);
