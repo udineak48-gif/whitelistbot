@@ -16,7 +16,7 @@ const client = new Client({
   intents: [GatewayIntentBits.Guilds],
 });
 
-/* ✅ LIST KEY */
+/* ✅ KEY FREE */
 let keys = [
   "FREE-K9P2M",
   "FREE-ZX81L",
@@ -32,7 +32,7 @@ let keys = [
 /* ✅ BACKUP KEY (AUTO RESET BIAR GAK HABIS) */
 const backupKeys = [...keys];
 
-/* ✅ SIMPAN KEY PER USER */
+/* ✅ SIMPAN KEY PER USER (ANTI CLAIM ULANG) */
 const userKey = new Map();
 
 client.once(Events.ClientReady, async () => {
@@ -40,7 +40,7 @@ client.once(Events.ClientReady, async () => {
 
   const channel = await client.channels.fetch(process.env.CHANNEL_ID);
 
-  /* ✅ ANTI DOBEL: Hapus pesan bot lama */
+  /* ✅ ANTI DOBEL PESAN SAAT RESTART */
   try {
     const msgs = await channel.messages.fetch({ limit: 20 });
     msgs.forEach((m) => {
@@ -48,7 +48,7 @@ client.once(Events.ClientReady, async () => {
     });
   } catch (e) {}
 
-  /* ✅ Kirim tombol FREE + VIP */
+  /* ✅ BUTTON FREE + VIP */
   await channel.send({
     content:
       "**Tekan tombol hijau untuk claim Script Free.\nKalau mau VIP lebih gacor, klik tombol Order VIP.**",
@@ -60,11 +60,11 @@ client.once(Events.ClientReady, async () => {
           .setLabel("✅ Scripts Free (Tekan Ini)")
           .setStyle(ButtonStyle.Success),
 
-        // ✅ ORDER VIP LINK
+        // ✅ ORDER VIP (GANTI LINK CHANNEL ORDER LU)
         new ButtonBuilder()
           .setLabel("💰 Order VIP")
           .setStyle(ButtonStyle.Link)
-          .setURL("https://discord.gg/LINKVIPLU") // 🔥 GANTI LINK VIP LU
+          .setURL("PASTE_LINK_CHANNEL_ORDER_DISINI")
       ),
     ],
   });
@@ -121,8 +121,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
       `💠 7 Hari — Rp 20.000\n` +
       `💠 14 Hari — Rp 35.000\n` +
       `💠 30 Hari — Rp 60.000\n\n` +
-      `💰 Order VIP:\n` +
-      `https://discord.com/channels/1450477024257769597/1466188664215437329` + // 🔥 GANTI LINK VIP
       `---------------------------------\n\n` +
       `✅ Username Roblox: **${username}**\n` +
       `🔑 Key: **${key}**\n` +
@@ -146,5 +144,5 @@ client.on(Events.InteractionCreate, async (interaction) => {
   }
 });
 
-/* ✅ LOGIN */
+/* ✅ LOGIN BOT */
 client.login(process.env.DISCORD_TOKEN);
